@@ -3,8 +3,8 @@
 A one-page broadsheet that sums up the day's world news, drawn entirely with
 Pillow: masthead, date bar, a lead story on Ukraine, side stories on North
 Korea and the Strait of Hormuz, a bottom row on the U.S. Thanksgiving storm,
-the Cairo tanker fire and SpaceX's satellite clearance, plus a ticker of
-further headlines.  Every story carries a small drawn panel so the page reads
+the EU's failed €45bn Ukraine loan and SpaceX's satellite clearance, plus a
+ticker of further headlines.  Every story carries a small drawn panel so the page reads
 as pictures plus words, the way a picture editor would lay it out.
 
 The drawing is deterministic: fixed geometry, fixed fonts, no randomness
@@ -195,6 +195,25 @@ def panel_fire(d, box):
               fill=(246, 178, 60))
 
 
+def panel_eu(d, box):
+    """EU flag motif: a ring of gold stars on a blue field."""
+    import math
+    x0, y0, x1, y1 = box
+    d.rectangle(box, fill=(0, 51, 153))
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    ring = min(x1 - x0, y1 - y0) * 0.30
+    for k in range(12):
+        ang = -math.pi / 2 + k * 2 * math.pi / 12
+        sx, sy = cx + ring * math.cos(ang), cy + ring * math.sin(ang)
+        r = 4.5
+        pts = []
+        for j in range(10):
+            a = -math.pi / 2 + j * math.pi / 5
+            rr = r if j % 2 == 0 else r * 0.42
+            pts.append((sx + rr * math.cos(a), sy + rr * math.sin(a)))
+        d.polygon(pts, fill=(255, 204, 0))
+
+
 def panel_satellite(d, box):
     """A data-centre satellite over the curve of the Earth."""
     x0, y0, x1, y1 = box
@@ -222,6 +241,7 @@ PANELS = {
     "tanker": panel_tanker,
     "storm": panel_storm,
     "fire": panel_fire,
+    "eu": panel_eu,
     "satellite": panel_satellite,
 }
 
@@ -277,8 +297,9 @@ def build():
                    font(SERIF_B, 51), INK, lw, 58)
     body = ("President Trump said he pressed Vladimir Putin, when they met "
             "in China last week, to pull back Russia's military aggression "
-            "in Europe and help end the war. The appeal came as Russian "
-            "strikes killed five people and cut power across Ukraine.")
+            "in Europe. President Zelenskyy warned of a new mass strike as "
+            "Russian missiles hit Kyiv, wounding seven and cutting power "
+            "across Ukraine.")
     text_block(d, lx, y + 8, body, font(SERIF, 19), (35, 35, 35), 372, 24)
     panel_lead(d, (lx + 392, y + 8, lx + lw, y + 148))
     cap = "Kyiv at dusk: strikes cut power nationwide."
@@ -288,51 +309,52 @@ def build():
     rx, rw = 668, RIGHT - 668
     ry = story(d, rx, 258, rw, "NORTH KOREA",
                "KIM ORDERS BIGGER NUCLEAR ARSENAL",
-               "Kim Jong Un called for an expansion of North Korea's "
-               "nuclear programme. Ukraine says Pyongyang has meanwhile "
-               "halted missile shipments to Russia.",
-               h_size=25, b_size=16, leading=20)
-    d.line([(rx, ry + 10), (RIGHT, ry + 10)], fill=RULE, width=1)
+               "Kim Jong Un ordered an expansion of North Korea's nuclear "
+               "programme, stressing tactical nuclear weapons, and called "
+               "its nuclear status 'irreversible' after ignoring Mr "
+               "Trump's offer to meet.",
+               h_size=23, b_size=15, leading=19)
     story(d, rx, ry + 22, rw, "STRAIT OF HORMUZ",
           "BLASTS HIT 3 TANKERS IN HORMUZ",
-          "Iran reported explosions aboard three tankers in the "
-          "strait. A drone strike killed two Italians in Kuwait; "
+          "A tanker struck a mine and exploded in the strait and two more "
+          "were hit by projectiles. Iran's guards fired warning shots at "
+          "a U.S. F-16, and a drone attack in Kuwait killed two Italians; "
           "oil neared $97.",
-          h_size=25, b_size=16, leading=20)
+          h_size=23, b_size=15, leading=19)
 
     # --- bottom rule + grid ---------------------------------------------
     d.line([(MARGIN, 672), (RIGHT, 672)], fill=RULE, width=3)
     cols = [(MARGIN, "storm", "UNITED STATES — WEATHER",
              "STORM DISRUPTS THANKSGIVING",
              "A holiday storm cancelled some 400 flights, delayed 2,000 "
-             "more and left 724,000 homes dark; a 100th Macy's parade "
-             "was postponed."),
-            (360, "fire", "EGYPT",
-             "TANKER FIRE KILLS 31 IN CAIRO",
-             "A fuel tanker overturned and exploded on a packed Cairo "
-             "highway, killing at least 31. Prosecutors detained the "
-             "driver."),
+             "more and left 724,000 homes dark; the 100th Macy's parade "
+             "was postponed to Saturday."),
+            (360, "eu", "EUROPE",
+             "EU FAILS TO AGREE €45BN UKRAINE LOAN",
+             "EU leaders ended a Brussels summit without agreeing a €45bn "
+             "loan for Ukraine's needs next year; 24 states backed it, "
+             "but the deal stalled in a fight over the bloc's budget."),
             (684, "satellite", "SPACE",
              "SPACEX CLEARED FOR 1M SATELLITES",
              "U.S. regulators cleared SpaceX to deploy up to one million "
              "satellites as orbital data centres above Earth.")]
     for cx, key, kick, head, body in cols:
         PANELS[key](d, (cx, 684, cx + 304, 748))
-        story(d, cx, 760, 304, kick, head, body, h_size=24, b_size=16,
-              leading=20)
+        story(d, cx, 754, 304, kick, head, body, h_size=22, b_size=15,
+              leading=18)
 
     # --- ticker ----------------------------------------------------------
     d.rectangle([MARGIN, 934, RIGHT, 982], fill=INK)
-    tick = ("ALSO TODAY — U.S. TARIFF ON INDIA: 25% PROPOSED · BANGKOK "
-            "BLAST HURTS 9 · CHESS: GAME 3 DRAWN")
+    tick = ("ALSO TODAY — TRUMP THREATENS IRAN NUCLEAR SITE · INDONESIA "
+            "MINE FLOOD: 13 DEAD · CHESS: GAME 3 DRAWN")
     tf = fit_font(d, tick, SANS_B, 16, RIGHT - MARGIN - 28)
     tw = d.textlength(tick, font=tf)
     d.text(((W - tw) / 2, 949), tick, font=tf, fill=(250, 248, 240))
 
-    foot = ("Compiled from reports by Reuters, AP, AFP, NDTV and The Japan "
+    foot = ("Compiled from reports by Reuters, AP, AFP, Dawn and The Japan "
             "Times on 27 November 2026 · Panels drawn by program; no "
             "photographs used")
-    ff = font(SANS, 14)
+    ff = fit_font(d, foot, SANS, 14, RIGHT - MARGIN)
     tw = d.textlength(foot, font=ff)
     d.text(((W - tw) / 2, 990), foot, font=ff, fill=GRAY)
     return img
